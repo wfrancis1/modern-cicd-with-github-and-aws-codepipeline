@@ -1,20 +1,22 @@
+require('dotenv').config();
+
 var config = {
-  infra: {},
-  app: {},
+  infra: {
+    region: process.env.AWS_REGION || "us-west-2",
+    dynamodb_table: process.env.DYNAMODB_TABLE_NAME || "Rooms",
+    dynamodb_endpoint: process.env.DYNAMODB_ENDPOINT || "http://127.0.0.1:8001"
+  },
+  app: {
+    hotel_name: process.env.HOTEL_NAME || "Hotel Yorba"
+  }
 };
 
-// Set region and other config properties from environment variables
-config.infra.region = process.env.AWS_REGION || "us-west-2";
-config.app.hotel_name = process.env.HOTEL_NAME || "Hotel Yorba";
-config.infra.dynamodb_table = process.env.DYNAMODB_TABLE_NAME || "Rooms";
-config.infra.dynamodb_endpoint = process.env.DYNAMODB_ENDPOINT || undefined;
-
+// Log configuration when loaded
 console.debug("Configuration loaded with the following settings:");
 console.debug("Region:", config.infra.region);
 console.debug("Hotel Name:", config.app.hotel_name);
 console.debug("DynamoDB Table:", config.infra.dynamodb_table);
 console.debug("DynamoDB Endpoint:", config.infra.dynamodb_endpoint);
 
-
-// Directly export config object
+// Export just the config object
 module.exports = config;
