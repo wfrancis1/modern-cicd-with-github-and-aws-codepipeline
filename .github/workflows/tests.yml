@@ -68,4 +68,6 @@ jobs:
         run: npm run unit-test
 
       - name: Run integration tests
+        env:
+          CHROME_BIN: /opt/hostedtoolcache/setup-chrome/chromium/stable/x64/chrome
         run: npm run integration-tests
