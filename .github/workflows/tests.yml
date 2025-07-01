@@ -28,6 +28,15 @@ jobs:
         uses: browser-actions/setup-chrome@latest
         with:
           chrome-version: 'stable'
+          install-chromedriver: true
+
+      - name: Verify Chrome version
+        run: |
+          ${{ steps.setup-chrome.outputs.chrome-path }} --version
+      
+      - name: Symlink Chrome binary to default path
+        run: |
+          sudo ln -sf ${{ steps.setup-chrome.outputs.chrome-path }} /usr/bin/google-chrome
 
       - name: Install dependencies
         run: npm install
