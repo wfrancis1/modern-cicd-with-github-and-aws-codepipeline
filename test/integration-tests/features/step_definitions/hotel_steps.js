@@ -75,15 +75,36 @@ Then('I should see the heading {string}', async function (headingText) {
   await verifyHomepageElements(driver, 'heading', headingText);
 });
 
+const { By, until } = require('selenium-webdriver');
+
 When('I click on {string} in the navbar', async function (linkText) {
-  if (linkText === 'Rooms') {
-    await openRoomsPage(driver);
-  } else if (linkText === 'Add') {
-    await openAddRoomPage(driver);
-  } else {
-    throw new Error(`Link text ${linkText} is not supported.`);
-  }
+  // Wait explicitly for the navbar link to be clickable
+  const navbarLinkLocator = By.linkText(linkText);
+  const navbarLink = await driver.wait(
+    until.elementLocated(navbarLinkLocator),
+    10000,
+    `Navbar link "${linkText}" not found`
+  );
+
+  // Ensure the element is visible and clickable
+  await driver.wait(
+    until.elementIsVisible(navbarLink),
+    10000,
+    `Navbar link "${linkText}" not visible`
+  );
+  await driver.wait(
+    until.elementIsEnabled(navbarLink),
+    10000,
+    `Navbar link "${linkText}" not enabled`
+  );
+
+  // Click the navbar link
+  await navbarLink.click();
+
+  // Wait briefly for the new page to load completely
+  await driver.sleep(500); // adjust as necessary or wait explicitly for next page element
 });
+
 
 Then('I should be on the {string} page', async function (pageTitle) {
   await verifyRoomList(driver, 'title', pageTitle);
