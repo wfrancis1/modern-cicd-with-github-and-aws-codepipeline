@@ -75,8 +75,6 @@ Then('I should see the heading {string}', async function (headingText) {
   await verifyHomepageElements(driver, 'heading', headingText);
 });
 
-const { By, until } = require('selenium-webdriver');
-
 When('I click on {string} in the navbar', async function (linkText) {
   // Wait explicitly for the navbar link to be clickable
   const navbarLinkLocator = By.linkText(linkText);
