@@ -26,6 +26,7 @@ jobs:
 
       - name: Setup Chrome browser and ChromeDriver
         uses: browser-actions/setup-chrome@latest
+        id: setup-chrome
         with:
           chrome-version: 'stable'
           install-chromedriver: true
