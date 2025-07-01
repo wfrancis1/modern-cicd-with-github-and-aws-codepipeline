@@ -1,6 +1,7 @@
 const { setDefaultTimeout, Given, When, Then, After } = require('@cucumber/cucumber');
 const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
+const { ServiceBuilder } = require('selenium-webdriver/chrome');
 const { openHomepage, verifyHomepageElements } = require('./helpers/homepageHelper');
 const {
   openAddRoomPage,
@@ -34,15 +35,15 @@ const buildDriver = async () => {
   } else {
     // If no GRID_URL is set, run the browser locally
     let options = new chrome.Options();
+    options.addArguments(
+      '--no-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu'
+    );
 
     if (process.env.CI) {
       console.log('Running in CI, enabling headless mode for Chrome');
-      options.addArguments(
-        '--headless',             // Run in headless mode
-        '--disable-gpu',
-        '--no-sandbox',
-        '--disable-dev-shm-usage'
-      );
+      options.addArguments('--headless');
     }
 
     driver = await new Builder()
@@ -59,7 +60,7 @@ const buildDriver = async () => {
 // Step Definitions
 Given('I am on the homepage', async function () {
   await buildDriver(); // Create WebDriver instance
-  const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+  const baseUrl = process.env.BASE_URL || 'http://localhost:8081';
   await openHomepage(driver, baseUrl); // Use helper function to open the homepage
 });
 
@@ -76,31 +77,40 @@ Then('I should see the heading {string}', async function (headingText) {
 });
 
 When('I click on {string} in the navbar', async function (linkText) {
-  // Wait explicitly for the navbar link to be clickable
-  const navbarLinkLocator = By.linkText(linkText);
-  const navbarLink = await driver.wait(
-    until.elementLocated(navbarLinkLocator),
-    10000,
-    `Navbar link "${linkText}" not found`
-  );
+  // Retry mechanism for stale element reference
+  let attempts = 0;
+  const maxAttempts = 3;
+  
+  while (attempts < maxAttempts) {
+    try {
+      // Wait for page to be ready
+      await driver.sleep(1000);
+      
+      // Re-find the navbar link to avoid stale element reference
+      const navbarLinkLocator = By.linkText(linkText);
+      await driver.wait(
+        until.elementLocated(navbarLinkLocator),
+        10000,
+        `Navbar link "${linkText}" not found`
+      );
 
-  // Ensure the element is visible and clickable
-  await driver.wait(
-    until.elementIsVisible(navbarLink),
-    10000,
-    `Navbar link "${linkText}" not visible`
-  );
-  await driver.wait(
-    until.elementIsEnabled(navbarLink),
-    10000,
-    `Navbar link "${linkText}" not enabled`
-  );
+      // Find the element fresh each time
+      const navbarLink = await driver.findElement(navbarLinkLocator);
+      
+      // Click the navbar link
+      await navbarLink.click();
 
-  // Click the navbar link
-  await navbarLink.click();
-
-  // Wait briefly for the new page to load completely
-  await driver.sleep(500); // adjust as necessary or wait explicitly for next page element
+      // Wait for page to load
+      await driver.sleep(1000);
+      break;
+    } catch (error) {
+      attempts++;
+      if (attempts >= maxAttempts) {
+        throw error;
+      }
+      await driver.sleep(500);
+    }
+  }
 });
 
 

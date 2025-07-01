@@ -15,7 +15,7 @@ async function verifyHomepageElements(driver, element, value = null) {
         }
 
         const navbarText = await navbar.getText();
-        if (!navbarText.includes("Home") || !navbarText.includes("Rooms") || !navbarText.includes("Book")) {
+        if (!navbarText.includes("Home") || !navbarText.includes("Rooms") || !navbarText.includes("Add")) {
             throw new Error(`Navbar links missing. Got: ${navbarText}`);
         }
     } else if (element === "heading") {
